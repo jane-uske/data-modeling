@@ -9,27 +9,27 @@ export default defineConfig({
   layout: {
     title: '@umijs/max',
   },
+  // plugins:['@umijs/plugins/dist/antd'],
   routes: [
     {
       path: '/',
-      redirect: '/home',
+      redirect: '/modelManage',
     },
     {
-      name: '首页',
-      path: '/home',
-      component: './Home',
+      name: '模型管理',
+      path: '/modelManage',
+      component: './ModelManage',
     },
     {
-      name: '权限演示',
-      path: '/access',
-      component: './Access',
+      name: '管理中心',
+      path: '/manageCentral',
+      component: './ManageCentral',
     },
     {
-      name: ' CRUD 示例',
-      path: '/table',
-      component: './Table',
+      name: '文本识别',
+      path: '/textRecognition',
+      component: './TextRecognition',
     },
   ],
   npmClient: 'pnpm',
 });
-

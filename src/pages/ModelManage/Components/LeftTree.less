@@ -1,0 +1,91 @@
+.draggable-tree {
+  margin-top: 16px;
+
+  .ant-tree-draggable-icon {
+    position: absolute;
+    right: 0;
+    margin-top: 7px;
+    color: #000;
+    z-index: 1;
+  }
+
+  .ant-tree-switcher {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ant-tree-checkbox + span:hover {
+    background-color: transparent;
+  }
+
+  .ant-tree-node-content-wrapper {
+    padding: 7px 0;
+  }
+
+  .ant-tree-node-content-wrapper:has(input) {
+    padding: 0;
+  }
+
+  .ant-tree-node-content-wrapper:hover {
+    background-color: transparent;
+  }
+
+  .ant-tree-treenode-selected {
+    background: #ebedf1;
+
+    .ant-tree-node-selected {
+      background-color: transparent;
+    }
+  }
+
+  .ant-tree-treenode {
+    margin-bottom: 4px;
+    padding: 0 14px 0 0;
+    border: 2px solid #fff;
+    border-radius: 8px;
+
+    &:hover {
+      // border: 2px solid #5071F4;
+
+      .deleteIcon {
+        opacity: 1;
+      }
+    }
+
+    &:has(input) {
+      border: 2px solid #5071f4;
+      background: #fff;
+    }
+  }
+
+  .menuInput {
+    border: none;
+    box-shadow: none;
+    height: 40px;
+    width: 183px;
+    padding: 0;
+  }
+
+  .ant-tree-indent-unit {
+    width: 20px;
+  }
+
+  .treeItem {
+    padding-right: 18px;
+
+    .treeTitle {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .deleteIcon {
+      position: absolute;
+      right: 12px;
+      width: 15px;
+      height: 15px;
+      opacity: 0;
+    }
+  }
+}
