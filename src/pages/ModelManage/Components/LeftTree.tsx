@@ -225,19 +225,19 @@ export const LeftTree: React.FC<any> = (props) => {
       }
     }
 
+    // 同级
     const isSameLevel =
       (info.node as any).level === (info.dragNode as any).level;
-    const isInsetAction = !info.dropToGap;
 
-    if (
-      !isSameLevel &&
-      (info.dragNode as any).level < (info.node as any).level
-    ) {
-      return message.error('父级不能拖入子级');
-    }
+    // 插入
+    const isInsetAction = !info.dropToGap;
 
     if (isSameLevel && isInsetAction) {
       return message.error('同级之间不能插入');
+    }
+
+    if (!isSameLevel && !isInsetAction) {
+      return message.error('非同级之间不能换位');
     }
 
     const loop = (
@@ -417,7 +417,7 @@ export const LeftTree: React.FC<any> = (props) => {
   };
 
   return (
-    <div className="left-tree" style={{ height: 1080 }}>
+    <div className="left-tree" style={{ height: 'calc(100vh - 100px)' }}>
       <div className="new-btn-wrap">
         <Button onClick={() => onNew()}>新建</Button>
       </div>

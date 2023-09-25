@@ -4,7 +4,7 @@
 // 更多信息见文档：https://umijs.org/docs/api/runtime-config#getinitialstate
 import React from 'react';
 import { useModel } from '@umijs/max';
-import useGlobal from './models/useGlobal';
+import useGlobal, { AddModelModal } from './models/useGlobal';
 import { PlusOutlined } from '@ant-design/icons';
 import { Button } from 'antd';
 export async function getInitialState(): Promise<{ name: string }> {
@@ -12,19 +12,20 @@ export async function getInitialState(): Promise<{ name: string }> {
 }
 
 function AddBtn() {
-  const { setOpen, addButton } = useGlobal();
+  const { setOpen, open, gData } = useGlobal();
   return (
-    <Button
-      style={{ marginRight: 48 }}
-      onClick={() => {
-        setOpen(true);
-        // setInputValue('fasdas');
-        console.log('321313');
-      }}
-    >
-      <PlusOutlined />
-      添加模型
-    </Button>
+    <>
+      <Button
+        style={{ marginRight: 48 }}
+        onClick={() => {
+          setOpen(true);
+        }}
+      >
+        <PlusOutlined />
+        添加模型
+      </Button>
+      <AddModelModal open={open} setOpen={setOpen} gData={gData} />
+    </>
   );
 }
 

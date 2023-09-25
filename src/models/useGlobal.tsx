@@ -14,6 +14,12 @@ type TreeNode = DataNode & {
   value?: string;
 };
 
+interface RenderAddModelModalProps {
+  open: boolean;
+  gData: any;
+  setOpen: (open: boolean) => void;
+}
+
 const getRanDomKey = () => Math.random().toString(36).slice(2);
 
 const INITGDATA = [
@@ -30,89 +36,68 @@ const INITGDATA = [
 
 const useGlobal = () => {
   const [gData, setGData] = useState<TreeNode[]>(INITGDATA);
-  const [open, setOpen] = useState<boolean>(true);
-  const [inputValue, setInputValue] = useState('');
-
-  const [form] = Form.useForm();
-
-  const addButton = () => {
-    return (
-      <Button
-        style={{ marginRight: 48 }}
-        onClick={() => {
-          setOpen(true);
-          setInputValue('fasdas');
-          console.log('321313');
-        }}
-      >
-        <PlusOutlined />
-        添加模型
-      </Button>
-    );
-  };
-
-  useEffect(() => {
-    console.log('open', open, inputValue);
-  }, [open, inputValue]);
-
-  const renderAddModelModal = () => {
-    console.log('renderAddModelModal被调用了');
-    if (open)
-      return (
-        <Modal
-          title="新增模型"
-          open={open}
-          onOk={() => {}}
-          onCancel={() => {
-            setOpen(false);
-          }}
-        >
-          <Form form={form} labelCol={{ span: 8 }} wrapperCol={{ span: 16 }}>
-            <Form.Item name="model-name" label="模型名称" required>
-              <Input
-                placeholder="请输入流程名称"
-                value={inputValue}
-                onChange={(e) => {
-                  console.log(e.target.value);
-                  setInputValue(e.target.value);
-                }}
-              />
-            </Form.Item>
-            <Form.Item name="directory-location" label="目录位置" required>
-              <TreeSelect
-                showSearch
-                style={{ width: '100%' }}
-                // value={value}
-                dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
-                placeholder="Please select"
-                allowClear
-                treeDefaultExpandAll
-                // onChange={(newValue: string) => {
-                //   console.log(newValue);
-                // }}
-                treeData={gData}
-              />
-            </Form.Item>
-            <Form.Item name="directory-type" label="目录类型" required>
-              <Radio.Group>
-                <Radio value={'concept'}>概念模型</Radio>
-                <Radio value={'logic'}>逻辑模型</Radio>
-                <Radio value={'physics'}>物理模型</Radio>
-              </Radio.Group>
-            </Form.Item>
-          </Form>
-        </Modal>
-      );
-  };
+  const [open, setOpen] = useState<boolean>(false);
 
   return {
-    addButton,
     gData,
     setGData,
-    renderAddModelModal,
     open,
     setOpen,
   };
 };
 
+const AddModelModal: React.FC<RenderAddModelModalProps> = (props) => {
+  const { open, setOpen, gData } = props;
+  const [form] = Form.useForm();
+  const [inputValue, setInputValue] = useState('');
+
+  if (open)
+    return (
+      <Modal
+        title="新增模型"
+        open={open}
+        onOk={() => {}}
+        onCancel={() => {
+          setOpen(false);
+        }}
+      >
+        <Form form={form} labelCol={{ span: 8 }} wrapperCol={{ span: 16 }}>
+          <Form.Item name="model-name" label="模型名称" required>
+            <Input
+              placeholder="请输入流程名称"
+              value={inputValue}
+              onChange={(e) => {
+                console.log(e.target.value);
+                setInputValue(e.target.value);
+              }}
+            />
+          </Form.Item>
+          <Form.Item name="directory-location" label="目录位置" required>
+            <TreeSelect
+              showSearch
+              style={{ width: '100%' }}
+              // value={value}
+              dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
+              placeholder="Please select"
+              allowClear
+              treeDefaultExpandAll
+              // onChange={(newValue: string) => {
+              //   console.log(newValue);
+              // }}
+              treeData={gData}
+            />
+          </Form.Item>
+          <Form.Item name="directory-type" label="目录类型" required>
+            <Radio.Group>
+              <Radio value={'concept'}>概念模型</Radio>
+              <Radio value={'logic'}>逻辑模型</Radio>
+              <Radio value={'physics'}>物理模型</Radio>
+            </Radio.Group>
+          </Form.Item>
+        </Form>
+      </Modal>
+    );
+};
+
+export { AddModelModal };
 export default useGlobal;
