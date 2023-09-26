@@ -1,9 +1,27 @@
+.left-tree {
+  min-width: 280px;
+  border: none;
+
+  .title {
+    height: 50px;
+    width: 100%;
+    padding: 13px 16px;
+    margin: 0;
+    // font-family: PingFangSC-Medium;
+    font-size: 16px;
+    font-weight: normal;
+    line-height: 24px;
+    color: #1b1c1e;
+  }
+}
+
 .draggable-tree {
   margin-top: 16px;
 
   .ant-tree-draggable-icon {
     position: absolute;
     right: 0;
+    opacity: 0;
     margin-top: 7px;
     color: #000;
     z-index: 1;
@@ -51,6 +69,14 @@
       .deleteIcon {
         opacity: 1;
       }
+
+      .addIcon {
+        opacity: 1;
+      }
+
+      .ant-tree-draggable-icon {
+        opacity: 1;
+      }
     }
 
     &:has(input) {
@@ -85,6 +111,18 @@
       right: 12px;
       width: 15px;
       height: 15px;
+      opacity: 0;
+    }
+
+    .addIcon {
+      position: absolute;
+      right: 38px;
+      width: 15px;
+      height: 15px;
+      opacity: 0;
+    }
+
+    .ant-tree-draggable-icon {
       opacity: 0;
     }
   }

@@ -4,36 +4,12 @@ import { Button } from 'antd';
 import { LeftOutlined } from '@ant-design/icons';
 import { useEffect, useRef, useState } from 'react';
 
-export default () => {
+export const MyCanvas = () => {
   const CanvasAction = useRef(null) as any;
   const canvas = useRef(null) as any;
-  const isDrawingRef = useRef(false);
-  const startPointRef = useRef(null);
-  const currentLineRef = useRef(null);
+  const dragObject = useRef(null);
 
   const [rect, setRect] = useState();
-  //   if (!rect || rect === rect1) {
-  //     return;
-  //   }
-
-  //   const line = new fabric.Line(
-  //     [
-  //       attachmentPoint.left,
-  //       attachmentPoint.top,
-  //       rect1.left + rect1.width / 2,
-  //       rect1.top + rect1.height / 2,
-  //     ],
-  //     {
-  //       fill: 'black',
-  //       stroke: 'black',
-  //       strokeWidth: 2,
-  //       selectable: false,
-  //     },
-  //   );
-
-  //   canvas.add(line);
-  //   canvas.sendToBack(line);
-  // };
 
   const createNew = () => {
     const rect = new fabric.Rect({
@@ -106,53 +82,13 @@ export default () => {
     return group;
   };
 
-  const getCornerProps = () => {
-    const cornerSize = 32;
-    const space = cornerSize + 8;
-    const position = 0.5;
-    const controlParamList = {
-      topControl: {
-        x: 0,
-        y: -position,
-        offsetX: 0,
-        offsetY: -space,
-      },
-      bottomControl: {
-        x: 0,
-        y: position,
-        offsetX: 0,
-        offsetY: space,
-      },
-      leftControl: {
-        x: position,
-        y: 0,
-        offsetX: space,
-        offsetY: 0,
-      },
-      rightControl: {
-        x: -position,
-        y: 0,
-        offsetX: -space,
-        offsetY: 0,
-      },
-    };
-    return {
-      ...controlParamList[controlName],
-      cursorStyle: 'circle',
-      mouseUpHandler: (controlName) => {},
-      render: renderIcon(addImg),
-      hoverRender: renderIcon(hoverAddImg),
-      cornerSize,
-    };
-  };
-
   return (
-    <>
-      <Button onClick={createNew}>添加对象</Button>
+    <div style={{ flex: 1, background: 'red' }}>
+      {/* <Button onClick={createNew}>添加对象</Button> */}
       <Canvas
         canvasAction={CanvasAction}
         reference
-        style={{ height: '100%' }}
+        style={{ height: '100%', background: 'red' }}
         // ruler
         onZoomChange={(value) => {
           console.log(value);
@@ -169,11 +105,16 @@ export default () => {
         onMouseUp={(e) => {}}
         onMouseOut={(e) => {}}
         onMouseOver={(e) => {}}
-        bottomBarLeftRender={() => {
-          return '自定义';
-        }}
+        // bottomBarLeftRender={() => {
+        //   return '自定义';
+        // }}
+
         bottomBarRightRender={() => {
-          return '自定义';
+          return (
+            <Button className="object-btn" ref={dragObject}>
+              业务对象
+            </Button>
+          );
         }}
         toolList={[]}
         cornerProps={{
@@ -206,6 +147,6 @@ export default () => {
           }, 100);
         }}
       />
-    </>
+    </div>
   );
 };

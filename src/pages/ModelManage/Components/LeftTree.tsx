@@ -9,17 +9,20 @@ import {
   Row,
   Tree,
   message,
-  Modal,
+  Menu,
+  Dropdown,
   Popconfirm,
+  Modal,
+  Form,
 } from 'antd';
+import { useModel } from '@umijs/max';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import type { DataNode, TreeProps } from 'antd/es/tree';
-import useCanvas from '../../../models/useCanvas';
-import useGlobal from '@/models/useGlobal';
-import { ReactComponent as Logo } from '../../../assets/4a.svg';
-import { ReactComponent as File } from '../../../assets/file.svg';
-import { ReactComponent as Flod } from '../../../assets/flod.svg';
+import { ReactComponent as Logo } from '../../../../public/img/4a.svg';
+import { ReactComponent as File } from '../../../../public/img/file.svg';
+import { ReactComponent as Flod } from '../../../../public/img/flod.svg';
 import './LeftTree.less';
+import { AddModelModal } from './AddModelModal';
 
 type TreeNode = DataNode & {
   key: string;
@@ -28,6 +31,7 @@ type TreeNode = DataNode & {
   children?: TreeNode[];
   level: number;
   isNew?: boolean;
+  value?: string;
 };
 
 const getParentKey = (key: React.Key, tree: TreeNode[]): React.Key => {
@@ -105,38 +109,171 @@ function insertNewNode(
 const getRanDomKey = () => Math.random().toString(36).slice(2);
 
 export const LeftTree: React.FC<any> = (props) => {
-  const { gData, setGData } = useGlobal();
+  const { setOpen, open, gData, setGData } = useModel('useGlobal');
   const { type } = props;
+  const [form] = Form.useForm();
   const dataList = useRef<{ title: string; key: string }[]>([]);
-  const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([gData[0].key]);
-  const [selectedKeys, setSelectedKeys] = useState([gData[0].key]);
+  const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
+  const [selectedKeys, setSelectedKeys] = useState([]);
   const [searchValue, setSearchValue] = useState('');
   const [autoExpandParent, setAutoExpandParent] = useState(true);
 
+  const [visible, setVisible] = React.useState(false);
+
+  const myMenu = (
+    <Menu
+      items={[
+        {
+          key: 'add',
+          label: <span>新增</span>,
+        },
+        {
+          key: 'delete',
+          label: <span>删除</span>,
+        },
+        {
+          key: 'update',
+          label: <span>编辑</span>,
+        },
+      ]}
+    />
+  );
+
+  const titleRender = (nodeData: any) => {
+    const width = 220 - nodeData.level * 22;
+    const strTitle = nodeData.title as string;
+    const index = strTitle.indexOf(searchValue);
+    const beforeStr = strTitle.substring(0, index);
+    const afterStr = strTitle.slice(index + searchValue.length);
+
+    let svgContent;
+    if (nodeData.level === 1) {
+      svgContent = <Logo />;
+    } else if (nodeData.level === 2) {
+      svgContent = <Flod />;
+    } else if (nodeData.level === 3) {
+      svgContent = <File />;
+    }
+    return (
+      <Dropdown overlay={myMenu} trigger={['contextMenu']}>
+        <Row
+          onDoubleClick={() => {
+            onEdit(nodeData, true);
+          }}
+          style={{ width }}
+          className="treeItem"
+          align="middle"
+        >
+          <Col flex={1}>
+            {nodeData.edit && (
+              <Input
+                style={{ width: width - 16 }}
+                ref={(input) => {
+                  inputs.current[nodeData.key] = input;
+                }}
+                onBlur={(e) => {
+                  onEdit(nodeData, false, e.target.value);
+                }}
+                className="menuInput"
+                onPressEnter={(e) => {
+                  onEdit(nodeData, false, (e.target as any).value);
+                }}
+                defaultValue={nodeData.title}
+              />
+            )}
+            {!nodeData.edit &&
+              (index > -1 ? (
+                <div className="treeTitle">
+                  <span
+                    style={{
+                      marginRight: 12,
+                      position: 'relative',
+                      top: 2,
+                    }}
+                  >
+                    {svgContent}
+                  </span>
+                  {beforeStr}
+                  <span style={{ color: 'red' }}>{searchValue}</span>
+                  {afterStr}
+                </div>
+              ) : (
+                <div className="treeTitle">
+                  <span
+                    style={{
+                      marginRight: 12,
+                      position: 'relative',
+                      top: 2,
+                    }}
+                  >
+                    {svgContent}
+                  </span>
+                  {nodeData.title}
+                </div>
+              ))}
+          </Col>
+          {nodeData?.level === 2 && (
+            <PlusOutlined
+              className="addIcon"
+              onClick={() => {
+                onNew(3, true, nodeData.key);
+              }}
+            />
+          )}
+          {nodeData.level === 2 && nodeData.children?.length ? (
+            <DeleteOutlined
+              className="deleteIcon"
+              onClick={() => {
+                message.error('目录下有文件时候不能删除');
+              }}
+            />
+          ) : (
+            <Popconfirm
+              title="你确定要删除吗"
+              description="删除后用户填写的数据将被一并删除且无法恢复，请谨慎删除！"
+              icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
+              onConfirm={() => onDelete(nodeData)}
+            >
+              <DeleteOutlined className="deleteIcon" />
+            </Popconfirm>
+          )}
+        </Row>
+      </Dropdown>
+    );
+  };
+
   const selectedNode = React.useMemo(() => {
-    return findNodeByKey(gData, selectedKeys[0]) as TreeNode;
+    return findNodeByKey(gData, (selectedKeys || [])[0]) as TreeNode;
   }, [selectedKeys, gData]);
 
-  const onNew = (title = '', edit = true) => {
-    if (selectedNode.level === 3) {
-      return message.error('当前节点内部不能新建');
-    }
+  useEffect(() => {
+    console.log(selectedNode, 'selectedNode');
+  }, [selectedNode]);
+
+  const onNew = (level = 2, edit = false, curAddKey = '') => {
+    // if (selectedNode.level === 3) {
+    //   return message.error('当前节点内部不能新建');
+    // }
     setExpandedKeys([...selectedKeys, ...expandedKeys]);
     const key = Math.random().toString(36).slice(2);
     const newNode: TreeNode = {
       key,
-      title,
-      level: selectedNode.level + 1,
+      title: level === 2 ? form.getFieldValue('groupName') : '',
+      value: level === 2 ? form.getFieldValue('groupName') : '',
+      level,
       edit,
       isNew: true,
       children: [],
     };
-    const updatedGData = insertNewNode(gData, selectedKeys[0], newNode);
-    setGData(updatedGData);
+    if (level === 2) {
+      const newGData = gData.concat([newNode]);
+      setGData([...gData, newNode]);
+    } else {
+      const updatedGData = insertNewNode(gData, curAddKey, newNode);
+      setGData(updatedGData);
+    }
     return newNode;
   };
-
-  const { canvasStore } = useCanvas();
 
   const inputs = useRef<{ [key: string]: any }>({});
 
@@ -150,9 +287,9 @@ export const LeftTree: React.FC<any> = (props) => {
     }
   };
 
-  useEffect(() => {
-    onSelect([gData[0].key]);
-  }, []);
+  // useEffect(() => {
+  //   onSelect();
+  // }, []);
 
   const onDelete = (info: TreeNode) => {
     if (info.level === 3) {
@@ -193,6 +330,7 @@ export const LeftTree: React.FC<any> = (props) => {
                 // 否则修改节点的属性
                 node.edit = isEdit;
                 node.title = newValue ?? node.title;
+                node.value = newValue ?? node.value;
               }
               return; // 找到目标节点后，结束递归
             }
@@ -318,117 +456,62 @@ export const LeftTree: React.FC<any> = (props) => {
           }
           return true;
         }}
-        titleRender={(nodeData) => {
-          const width = 220 - nodeData.level * 22;
-          const strTitle = nodeData.title as string;
-          const index = strTitle.indexOf(searchValue);
-          const beforeStr = strTitle.substring(0, index);
-          const afterStr = strTitle.slice(index + searchValue.length);
-
-          let svgContent;
-          if (nodeData.level === 1) {
-            svgContent = <Logo />;
-          } else if (nodeData.level === 2) {
-            svgContent = <Flod />;
-          } else if (nodeData.level === 3) {
-            svgContent = <File />;
-          }
-
-          return (
-            <Row
-              onDoubleClick={() => {
-                onEdit(nodeData, true);
-              }}
-              style={{ width }}
-              className="treeItem"
-              align="middle"
-            >
-              <Col flex={1}>
-                {nodeData.edit && (
-                  <Input
-                    style={{ width: width - 16 }}
-                    ref={(input) => {
-                      inputs.current[nodeData.key] = input;
-                    }}
-                    onBlur={(e) => {
-                      onEdit(nodeData, false, e.target.value);
-                    }}
-                    className="menuInput"
-                    onPressEnter={(e) => {
-                      onEdit(nodeData, false, (e.target as any).value);
-                    }}
-                    defaultValue={nodeData.title}
-                  />
-                )}
-                {!nodeData.edit &&
-                  (index > -1 ? (
-                    <div className="treeTitle">
-                      <span
-                        style={{
-                          marginRight: 12,
-                          position: 'relative',
-                          top: 2,
-                        }}
-                      >
-                        {svgContent}
-                      </span>
-                      {beforeStr}
-                      <span style={{ color: 'red' }}>{searchValue}</span>
-                      {afterStr}
-                    </div>
-                  ) : (
-                    <div className="treeTitle">
-                      <span
-                        style={{
-                          marginRight: 12,
-                          position: 'relative',
-                          top: 2,
-                        }}
-                      >
-                        {svgContent}
-                      </span>
-                      {nodeData.title}
-                    </div>
-                  ))}
-              </Col>
-              {nodeData.level !== 1 &&
-                (nodeData.level === 2 && nodeData.children?.length ? (
-                  <DeleteOutlined
-                    className="deleteIcon"
-                    onClick={() => {
-                      message.error('目录下有文件时候不能删除');
-                    }}
-                  />
-                ) : (
-                  <Popconfirm
-                    title="你确定要删除吗"
-                    description="删除后用户填写的数据将被一并删除且无法恢复，请谨慎删除！"
-                    icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
-                    onConfirm={() => onDelete(nodeData)}
-                  >
-                    <DeleteOutlined className="deleteIcon" />
-                  </Popconfirm>
-                ))}
-            </Row>
-          );
-        }}
+        titleRender={titleRender}
       />
     );
   };
 
   return (
-    <div className="left-tree" style={{ height: 'calc(100vh - 100px)' }}>
-      <div className="new-btn-wrap">
-        <Button onClick={() => onNew()}>新建</Button>
+    <>
+      <div className="left-tree" style={{ height: 'calc(100vh - 100px)' }}>
+        <p className="title">4A数据建模</p>
+        <Divider style={{ margin: 0 }} />
+        <div className="new-btn-wrap">
+          <Button onClick={() => setVisible(true)}>
+            <PlusOutlined />
+            添加主题域分组
+          </Button>
+        </div>
+        <Divider style={{ margin: 0 }} />
+        <div className="tree-wrap">
+          <Input.Search
+            placeholder="搜索..."
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+          />
+          {renderTree()}
+        </div>
       </div>
-      <Divider style={{ margin: 0 }} />
-      <div className="tree-wrap">
-        <Input.Search
-          value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
-        />
-        {renderTree()}
-      </div>
-    </div>
+
+      <Modal
+        open={visible}
+        onOk={() => {
+          onNew(2);
+          setVisible(false);
+          form.resetFields();
+        }}
+        onCancel={() => {
+          setVisible(false);
+          form.resetFields();
+        }}
+        title={'新建主题域分组'}
+      >
+        <Form form={form} labelCol={{ span: 24 }} wrapperCol={{ span: 24 }}>
+          <Form.Item label="分组名称" name="groupName" required>
+            <Input placeholder="请输入" />
+          </Form.Item>
+          <Form.Item label="描述" name="des">
+            <Input placeholder="请输入" />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <AddModelModal
+        curSelectValue={selectedNode?.value || ''}
+        open={open}
+        setOpen={setOpen}
+        gData={gData}
+      />
+    </>
   );
 };

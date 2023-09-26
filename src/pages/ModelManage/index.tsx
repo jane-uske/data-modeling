@@ -1,17 +1,10 @@
-// import Guide from '@/components/Guide';
-// import { trim } from '@/utils/format';
-// import { useModel } from '@umijs/max';
 import React from 'react';
 import { PageContainer } from '@ant-design/pro-components';
 import { LeftTree } from './Components/LeftTree';
-import useGlobal from '@/models/useGlobal';
-import FlowChart from './Components/FlowChart';
 import styles from './index.less';
-import { PlusOutlined } from '@ant-design/icons';
-import { Button } from 'antd';
+import { ModelManageWrap } from './Components/ModelManageWrap';
 
 const ModelManagePage: React.FC = () => {
-  // const { name } = useModel('global');
   return (
     <PageContainer
       className={styles.container}
@@ -20,12 +13,10 @@ const ModelManagePage: React.FC = () => {
     >
       <div className="page-wrap">
         <LeftTree />
-        <div style={{ flex: 1, margin: 16 }}>
-          <FlowChart />
-          {/* <XFlowCanvas /> */}
+        <div style={{ flex: 1, margin: '0 16px' }}>
+          <ModelManageWrap />
         </div>
       </div>
-      {/* {useGlobal().renderAddModelModal()} */}
     </PageContainer>
   );
 };
