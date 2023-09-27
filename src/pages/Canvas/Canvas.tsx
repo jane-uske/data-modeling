@@ -1,13 +1,18 @@
 import { useState, useRef, useEffect } from 'react';
 import { Canvas } from 'supcon-canvas';
 import { fabric } from 'fabric';
-import ReactDOM from 'react-dom';
+import { ExclamationCircleFilled } from '@ant-design/icons';
+import { Button, Modal, message } from 'antd';
 
 export const MyCanvas: React.FC<any> = ({
   canvas,
   setCanvas,
   open,
   setOpen,
+  curSelectedProps,
+  setCurSelectedProps,
+  objCollection,
+  setObjCollection,
 }) => {
   const CanvasAction = useRef(null) as any;
 
@@ -35,63 +40,84 @@ export const MyCanvas: React.FC<any> = ({
     return group;
   };
 
-  useEffect(() => {
-    // 添加右键点击菜单事件
-    if (!canvas) return;
-    canvas.on('mouse:down', (event: any) => {
-      console.log(event, 'event');
-      if (event.e.button === 2) {
-        // 右键点击
-        event.e.preventDefault(); // 阻止默认的右键菜单
+  // useEffect(() => {
+  //   // 添加右键点击菜单事件
+  //   if (!canvas) return;
+  //   canvas.on('mouse:down', (event: any) => {
+  //     if (event.e.button === 2) {
+  //       // 右键点击
+  //       event.e.preventDefault(); // 阻止默认的右键菜单
 
-        // 获取鼠标点击的位置
-        const mouseX = event.e.clientX;
-        const mouseY = event.e.clientY;
+  //       // 获取鼠标点击的位置
+  //       const mouseX = event.e.clientX;
+  //       const mouseY = event.e.clientY;
 
-        // 显示自定义右键菜单
-        showContextMenu(mouseX, mouseY);
-      }
-    });
+  //       // 显示自定义右键菜单
+  //       showContextMenu(mouseX, mouseY);
+  //     }
+  //   });
 
-    // 自定义的右键点击菜单显示函数
-    function showContextMenu(x, y) {
-      // 创建一个包含菜单项的菜单组件，并设置其样式和位置
-      const contextMenu = (
-        <div
-          style={{
-            position: 'absolute',
-            left: x + 'px',
-            top: y + 'px',
-            background: '#fff',
-            border: '1px solid #ccc',
-            padding: '5px',
-          }}
-        >
-          <ul>
-            <li onClick={handleMenuItemClick}>编辑</li>
-            <li onClick={handleMenuItemClick}>删除</li>
-          </ul>
-        </div>
-      );
+  //   // 自定义的右键点击菜单显示函数
+  //   function showContextMenu(x, y) {
+  //     // 创建一个包含菜单项的菜单组件，并设置其样式和位置
+  //     const contextMenu = (
+  //       <div
+  //         style={{
+  //           position: 'absolute',
+  //           left: x + 'px',
+  //           top: y + 'px',
+  //           background: '#fff',
+  //           border: '1px solid #ccc',
+  //           padding: '5px',
+  //         }}
+  //       >
+  //         <ul>
+  //           <li onClick={handleMenuItemClick}>编辑</li>
+  //           <li onClick={handleMenuItemClick}>删除</li>
+  //         </ul>
+  //       </div>
+  //     );
 
-      // 渲染自定义菜单
-      ReactDOM.render(contextMenu, document.body);
+  //     // 渲染自定义菜单
+  //     ReactDOM.render(contextMenu, document.body);
 
-      // 添加点击其他地方时隐藏菜单的监听器
-      document.addEventListener('mousedown', (event) => {
-        if (!contextMenu.contains(event.target)) {
-          ReactDOM.unmountComponentAtNode(document.body);
+  //     // 添加点击其他地方时隐藏菜单的监听器
+  //     document.addEventListener('mousedown', (event) => {
+  //       if (!contextMenu.contains(event.target)) {
+  //         ReactDOM.unmountComponentAtNode(document.body);
+  //       }
+  //     });
+  //   }
+
+  //   // 菜单项点击事件处理函数
+  //   function handleMenuItemClick(event) {
+  //     // 处理菜单项点击事件
+  //     console.log('点击了菜单项:', event.target.textContent);
+  //     ReactDOM.unmountComponentAtNode(document.body);
+  //   }
+  // }, []);
+
+  const showDeleteConfirm = () => {
+    Modal.confirm({
+      title: '确定删除？',
+      icon: <ExclamationCircleFilled />,
+      content: '将该业务对象从当前模型中删除？',
+      okText: '确定',
+      okType: 'danger',
+      cancelText: '取消',
+      onOk() {
+        let newObjCollection = [...objCollection].filter(
+          (item) => item.maxNum !== curSelectedProps.maxNum,
+        );
+        setObjCollection(newObjCollection);
+        const objectToRemove = canvas.getObjects()[0];
+        if (objectToRemove) {
+          canvas.remove(objectToRemove); // 移除匹配 "key" 的矩形对象
+          canvas.requestRenderAll();
         }
-      });
-    }
-
-    // 菜单项点击事件处理函数
-    function handleMenuItemClick(event) {
-      // 处理菜单项点击事件
-      console.log('点击了菜单项:', event.target.textContent);
-      ReactDOM.unmountComponentAtNode(document.body);
-    }
-  }, []);
+      },
+    });
+  };
 
   return (
     <div style={{ flex: 1, background: 'red' }}>
@@ -104,12 +130,34 @@ export const MyCanvas: React.FC<any> = ({
         // ruler
         onZoomChange={(value) => {}}
         onDragChang={(value) => {}}
-        onSelection={(e) => {}}
+        onSelection={(e) => {
+          // setCurSelectedProps(e.target?.comProps);
+          setOpen(true);
+        }}
         onSelectionUpdated={(e) => {}}
         onSelectionCleared={(e) => {}}
         onMouseDown={(e) => {
-          setOpen(true);
-          console.log('onMouseDown', e);
+          const comProps = (e.target as any)?.comProps || '';
+          if (comProps) {
+            setCurSelectedProps((e.target as any).comProps);
+          } else {
+            setCurSelectedProps({});
+          }
+        }}
+        bottomBarRightRender={() => {
+          return (
+            <Button
+              onClick={() => {
+                console.log(curSelectedProps, 'curSelectedProps');
+                if (Object.keys(curSelectedProps).length) {
+                  return showDeleteConfirm();
+                }
+                message.warning('当前没有选中对象');
+              }}
+            >
+              删除选中的业务对象
+            </Button>
+          );
         }}
         // onMouseMove={(e) => {
         //   console.log('onMouseMove', e);
@@ -147,7 +195,7 @@ export const MyCanvas: React.FC<any> = ({
         }}
         getCanvas={(_canvas) => {
           setCanvas(_canvas);
-          _canvas.add(createNew());
+          // _canvas.add(createNew());
           (_canvas.selection = false), // 禁用默认选择事件
             setTimeout(() => {
               CanvasAction.current.addHistory?.();

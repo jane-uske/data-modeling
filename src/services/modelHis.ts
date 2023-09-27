@@ -1,22 +1,32 @@
 import { request } from '@umijs/max';
 
-export async function updateModelHis(
-  params: {
-    // query
-    /** keyword */
-    keyword?: string;
-    /** current */
-    current?: number;
-    /** pageSize */
-    pageSize?: number;
-  },
+// 模型变更记录列表
+export async function updateModelHisList(
+  params: {},
   options?: { [key: string]: any },
 ) {
-  return request<API.Result_PageInfo_UserInfo__>('/modelHis/saveOrUpdate', {
+  return request<API.Result_PageInfo_UserInfo__>('/modeling/modelHis/list', {
     method: 'POST',
-    params: {
+    data: {
       ...params,
     },
     ...(options || {}),
   });
+}
+
+// 保存-修改模型变更记录
+export async function saveOrUpdateHisRecord(
+  params: {},
+  options?: { [key: string]: any },
+) {
+  return request<API.Result_PageInfo_UserInfo__>(
+    '/modeling/modelHis/saveOrUpdate',
+    {
+      method: 'POST',
+      data: {
+        ...params,
+      },
+      ...(options || {}),
+    },
+  );
 }

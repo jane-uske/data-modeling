@@ -14,7 +14,7 @@ export async function getInitialState(): Promise<{ name: string }> {
 }
 
 function AddBtn() {
-  const { setOpen, saveCanvas } = useModel('useGlobal');
+  const { setOpen, saveCavans } = useModel('useGlobal');
   if (location.pathname !== '/canvas') {
     return (
       <Button
@@ -31,7 +31,7 @@ function AddBtn() {
   }
   return (
     <>
-      <Button type="primary" style={{ marginRight: 16 }} onClick={saveCanvas}>
+      <Button type="primary" style={{ marginRight: 16 }} onClick={saveCavans}>
         <SaveOutlined />
         保存
       </Button>

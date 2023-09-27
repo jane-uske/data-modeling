@@ -1,35 +1,62 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ReactComponent as ObjBus } from '../../../public/img/联集 169.svg';
+import { ReactComponent as Line1 } from '../../../public/img/联集 159.svg';
+import { ReactComponent as Line2 } from '../../../public/img/联集 160.svg';
+import { ReactComponent as Line3 } from '../../../public/img/联集 161.svg';
+import { ReactComponent as Line4 } from '../../../public/img/联集 164.svg';
 import ArcNode from './fabric/ArcNode';
-import { addControls } from './fabric/controls';
 
-const position = {
-  left: 24,
-  top: 24,
-};
-export const ObjectToolbar: React.FC<any> = ({ canvas }) => {
+interface SelectObj {
+  name: string;
+  code: string;
+  maxNum: number;
+  subjectDomainId: number;
+  id: number;
+  left: number;
+  top: number;
+}
+
+export const ObjectToolbar: React.FC<any> = ({
+  canvas,
+  objCollection,
+  setObjCollection,
+  modelDetail,
+  setModelDetail,
+  hasInit,
+  setHasInit,
+  setObjToCanvas,
+}) => {
   const getInitObjInfo = () => {
-    return;
+    const { maxNum, subjectDomainId } = modelDetail;
+    setModelDetail({ ...modelDetail, maxNum: Number(maxNum) + 1 });
+    return {
+      maxNum,
+      name: `业务对象_0${Number(maxNum) + 1}`,
+      code: `Bussiness_Object_0${Number(maxNum) + 1}`,
+      subjectDomainId,
+    };
   };
 
-  const addFrameworkNode = ({ options } = {}) => {
-    const { type } = options;
-    const selectedProps = {};
-    const arcNode = new ArcNode(canvas, { ...selectedProps, ...options });
-
-    // 创建自定义控件并添加到矩形里
-    // arcNode.controls.copy = addControls('clone');
-    // arcNode.controls.deleteControl = addControls('delete');
+  const addFrameworkNode = (option: any, init = false) => {
+    const newObjInfo = init ? option : getInitObjInfo();
+    console.log(newObjInfo, 'newObjInfo');
+    const arcNode = new ArcNode(canvas, { ...newObjInfo, ...option });
     canvas.insertAt(arcNode, 0, false);
     canvas.requestRenderAll();
-    // canvas.saveCanvas();
+    setObjCollection([...objCollection, newObjInfo]);
   };
 
-  const addNode = (iconItem: any, position: any) => {
-    addFrameworkNode({
-      options: { type: iconItem.type, ...position },
-    });
-  };
+  // todo 初始化业务对象
+  useEffect(() => {
+    if (!hasInit && objCollection.length) {
+      setObjToCanvas(() => {
+        objCollection.forEach((item: SelectObj) => {
+          addFrameworkNode(item, true);
+        });
+      });
+      setHasInit(true);
+    }
+  }, [setObjToCanvas, objCollection]);
 
   return (
     <div className="obj-tool-bar">
@@ -37,15 +64,23 @@ export const ObjectToolbar: React.FC<any> = ({ canvas }) => {
         className="tool"
         draggable
         onDragEnd={(e) => {
-          addNode({ type: 'obj' }, { left: e.pageX, top: e.pageY });
+          addFrameworkNode({ left: e.pageX, top: e.pageY });
         }}
       >
         <ObjBus className="obj" />
       </div>
-      {/* <img src="img/联集 169.png" alt="" />
-        <img src="img/联集 169.png" alt="" />
-        <img src="img/联集 169.png" alt="" />
-        <img src="img/联集 169.png" alt="" /> */}
+      <div className="tool" draggable>
+        <Line1 className="obj" />
+      </div>
+      <div className="tool" draggable>
+        <Line2 className="obj" />
+      </div>
+      <div className="tool" draggable>
+        <Line3 className="obj" />
+      </div>
+      <div className="tool" draggable>
+        <Line4 className="obj" />
+      </div>
     </div>
   );
 };

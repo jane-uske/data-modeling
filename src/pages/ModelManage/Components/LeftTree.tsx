@@ -27,35 +27,52 @@ import { findNodeByKey, insertNewNode } from '../../../utils';
 import { TreeNode } from '@/models/useGlobal';
 import service from '../../../services';
 
+const transform = (arr: any, level: number) => {
+  return [...arr].map((item: any) => {
+    const { id, name } = item.t;
+    return {
+      key: id,
+      title: name,
+      children: [],
+      level,
+      value: id,
+    };
+  });
+};
+
+const transformData = (queryTree: any) =>
+  transform(queryTree, 2).map((item, index) => ({
+    ...item,
+    children: transform([...queryTree[index].children], 3),
+  }));
+
 export const LeftTree: React.FC<any> = (props) => {
   const { querySubjectDomain, deleteSubjectDomain, updateSubjectDomain } =
     service.DomainController;
-  useEffect(() => {
-    const fn = async () => {
-      const a = querySubjectDomain({
-        department: 'string',
-        id: 0,
-        name: 'string',
-        pageNumber: 0,
-        pageSize: 0,
-        parentId: 0,
-        remark: 'string',
-        type: 0,
-      });
-      console.log(a);
-    };
-    fn();
-  }, []);
+
   const { setOpen, open, gData, setGData } = useModel('useGlobal');
   const { type } = props;
   const [form] = Form.useForm();
-  const dataList = useRef<{ title: string; key: string }[]>([]);
+  const [isEdit, setIsEdit] = useState(false);
+  const [parentId, setParentId] = useState<number>(1);
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
   const [selectedKeys, setSelectedKeys] = useState([]);
   const [searchValue, setSearchValue] = useState('');
   const [autoExpandParent, setAutoExpandParent] = useState(true);
 
   const [visible, setVisible] = React.useState(false);
+
+  const getTree = async () => {
+    const { data: queryTree, code, msg } = await querySubjectDomain({});
+    if (code === 200) {
+      return setGData(transformData(queryTree));
+    }
+    return message.error(msg);
+  };
+
+  useEffect(() => {
+    getTree();
+  }, []);
 
   const myMenu = (
     <Menu
@@ -76,6 +93,37 @@ export const LeftTree: React.FC<any> = (props) => {
     />
   );
 
+  const newDoamin = async ({
+    value,
+    id,
+    type,
+  }: {
+    value: string;
+    id: number;
+    type: 0 | 1;
+  }) => {
+    // 新增
+    const params: any = isEdit
+      ? {
+          name: value,
+          id,
+          type,
+        }
+      : {
+          name: value,
+          parentId,
+          remark: form.getFieldValue('des'),
+          type: 1,
+        };
+    const res = await updateSubjectDomain(params);
+    if (res.code === 200) {
+      message.success(res.msg);
+    } else {
+      message.error((res as any).msg);
+    }
+    return res;
+  };
+
   const titleRender = (nodeData: any) => {
     const width = 220 - nodeData.level * 22;
     const strTitle = nodeData.title as string;
@@ -94,7 +142,12 @@ export const LeftTree: React.FC<any> = (props) => {
     return (
       <Dropdown overlay={myMenu} trigger={['contextMenu']}>
         <Row
-          onDoubleClick={() => {
+          onDoubleClick={async () => {
+            // const {data,code} = await updateSubjectDomain({
+            //   name:'',
+            //   id:
+            // })
+            setIsEdit(true);
             onEdit(nodeData, true);
           }}
           style={{ width }}
@@ -108,12 +161,28 @@ export const LeftTree: React.FC<any> = (props) => {
                 ref={(input) => {
                   inputs.current[nodeData.key] = input;
                 }}
-                onBlur={(e) => {
-                  onEdit(nodeData, false, e.target.value);
+                onBlur={async (e) => {
+                  const { code } = await newDoamin({
+                    value: e.target.value,
+                    type: nodeData.level === 2 ? 0 : 1,
+                    id: nodeData.key,
+                  });
+                  if (code === 200) {
+                    onEdit(nodeData, false, e.target.value);
+                  }
+                  setIsEdit(false);
                 }}
                 className="menuInput"
-                onPressEnter={(e) => {
-                  onEdit(nodeData, false, (e.target as any).value);
+                onPressEnter={async (e) => {
+                  const { code } = await newDoamin({
+                    value: e.target.value,
+                    type: nodeData.level === 2 ? 0 : 1,
+                    id: nodeData.key,
+                  });
+                  if (code === 200) {
+                    onEdit(nodeData, false, (e.target as any).value);
+                  }
+                  setIsEdit(false);
                 }}
                 defaultValue={nodeData.title}
               />
@@ -153,6 +222,7 @@ export const LeftTree: React.FC<any> = (props) => {
             <PlusOutlined
               className="addIcon"
               onClick={() => {
+                setParentId(nodeData.key);
                 onNew(3, true, nodeData.key);
               }}
             />
@@ -169,7 +239,16 @@ export const LeftTree: React.FC<any> = (props) => {
               title="你确定要删除吗"
               description="删除后用户填写的数据将被一并删除且无法恢复，请谨慎删除！"
               icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
-              onConfirm={() => onDelete(nodeData)}
+              onConfirm={async () => {
+                const { code, msg } = await deleteSubjectDomain({
+                  id: selectedKeys[0],
+                });
+                if (code === 200) {
+                  message.success('删除成功');
+                  return onDelete(nodeData);
+                }
+                message.error(msg);
+              }}
             >
               <DeleteOutlined className="deleteIcon" />
             </Popconfirm>
@@ -182,10 +261,6 @@ export const LeftTree: React.FC<any> = (props) => {
   const selectedNode = React.useMemo(() => {
     return findNodeByKey(gData, (selectedKeys || [])[0]) as TreeNode;
   }, [selectedKeys, gData]);
-
-  useEffect(() => {
-    console.log(selectedNode, 'selectedNode');
-  }, [selectedNode]);
 
   const onNew = async (level = 2, edit = false, curAddKey = '') => {
     setExpandedKeys([...selectedKeys, ...expandedKeys]);
@@ -201,16 +276,20 @@ export const LeftTree: React.FC<any> = (props) => {
     };
     if (level === 2) {
       setGData([...gData, newNode]);
+      // id: 0,
+      // 新增
       const res = await updateSubjectDomain({
-        department: 'string',
-        id: 0,
+        // department: 'string',
         name: form.getFieldValue('groupName'),
         parentId: 0,
         remark: form.getFieldValue('des'),
         type: 0,
       });
-      message.success((res as any).msg);
-      console.log(res, 'res');
+      if (res.code === 200) {
+        message.success((res as any).msg);
+      } else {
+        message.error((res as any).msg);
+      }
     } else {
       const updatedGData = insertNewNode(gData, curAddKey, newNode);
       setGData(updatedGData);
@@ -289,7 +368,7 @@ export const LeftTree: React.FC<any> = (props) => {
 
     if (isEdit) {
       setTimeout(() => {
-        inputs.current[info.key].focus?.();
+        inputs.current[info.key]?.focus?.();
       });
     }
   };

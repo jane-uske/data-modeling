@@ -1,6 +1,16 @@
-import React, { useState } from 'react';
-import { Button, Checkbox, Drawer, Form, Input, Table, Space } from 'antd';
+import React, { useEffect } from 'react';
+import {
+  Button,
+  Checkbox,
+  Drawer,
+  Form,
+  Input,
+  Table,
+  Space,
+  message,
+} from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
+import services from '@/services';
 
 const dataSource = [
   {
@@ -45,13 +55,25 @@ const columns = [
 ];
 interface Props {}
 export const PropsDrawer: React.FC<Props & any> = (props) => {
-  const { title = '业务对象：Bussiness_Object_01', open, setOpen } = props;
+  const { updateBusinessObject } = services.BusinessObjectController;
+  const {
+    open,
+    setOpen,
+    curSelectedProps,
+    modelDetail,
+    objCollection,
+    setObjCollection,
+  } = props;
 
   const [form] = Form.useForm();
 
-  const showDrawer = () => {
-    setOpen(true);
-  };
+  useEffect(() => {
+    const { name, code } = curSelectedProps;
+    form.setFieldsValue({
+      name,
+      code,
+    });
+  }, [curSelectedProps]);
 
   const onClose = () => {
     setOpen(false);
@@ -61,7 +83,7 @@ export const PropsDrawer: React.FC<Props & any> = (props) => {
     <div className="props-drawer">
       <Drawer
         width={594}
-        title={title}
+        title={curSelectedProps.code}
         placement="right"
         onClose={onClose}
         open={open}
@@ -69,18 +91,50 @@ export const PropsDrawer: React.FC<Props & any> = (props) => {
       >
         <>
           <Form form={form} labelCol={{ span: 24 }} wrapperCol={{ span: 24 }}>
-            <Form.Item name="obj-name" label="业务对象名称" required>
+            <Form.Item name="code" label="业务对象名称" required>
               <Input placeholder="请输入业务对象名称" />
             </Form.Item>
-            <Form.Item name="obj-des" label="中文名称">
+            <Form.Item name="name" label="中文名称">
               <Input placeholder="请输入业务对象名称" />
             </Form.Item>
           </Form>
-          <Button type="primary" onClick={() => {}}>
+          {/* <Button type="primary" onClick={() => {}}>
             <PlusOutlined />
             添加新属性
+          </Button> */}
+          {/* <Table columns={columns} dataSource={dataSource} /> */}
+          <Button
+            style={{ position: 'absolute', right: 24, bottom: 24 }}
+            type="primary"
+            onClick={async () => {
+              const { name, code } = form.getFieldsValue();
+              const { subjectDomainId } = modelDetail;
+              // 新增
+              const params = {
+                subjectDomainId,
+                name,
+                code,
+                modelId: location.search.split('?')[1],
+              };
+              const res = (await updateBusinessObject(params)) as any;
+              if (res.code === 200) {
+                message.success('保存成功');
+                setObjCollection(
+                  [...objCollection].map((item) => {
+                    if (item?.maxNum === curSelectedProps.maxNum) {
+                      return { ...item, id: res.data };
+                    }
+                    return { ...item };
+                  }),
+                );
+                onClose();
+              } else {
+                message.error(res.msg);
+              }
+            }}
+          >
+            保存
           </Button>
-          <Table columns={columns} dataSource={dataSource} />
         </>
       </Drawer>
     </div>

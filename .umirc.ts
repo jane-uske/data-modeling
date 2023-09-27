@@ -2,21 +2,11 @@ import { defineConfig } from '@umijs/max';
 
 export default defineConfig({
   proxy: {
-    '/businessObject': {
+    '/modeling': {
       // 指定代理路径
-      target: 'http://10.30.90.53:8080', // 目标地址
+      target: 'http://10.40.0.73:8080', // 目标地址
       changeOrigin: true,
     },
-    '/subjectDomain': {
-      // 指定代理路径
-      target: 'http://10.30.90.53:8080', // 目标地址
-      changeOrigin: true,
-    },
-    // '/': {
-    //   // 指定代理路径
-    //   target: 'http://10.30.90.53:8080', // 目标地址
-    //   changeOrigin: true,
-    // },
   },
   antd: {},
   access: {},

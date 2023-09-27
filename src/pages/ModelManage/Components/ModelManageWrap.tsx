@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Radio, Input, Select, Table, Space } from 'antd';
+import { history } from '@umijs/max';
 import type { RadioChangeEvent } from 'antd';
+import service from '../../../services';
 
 const header = [
   {
@@ -35,6 +37,12 @@ const header = [
   },
 ];
 
+const ModelType = {
+  0: '概念模型',
+  1: '逻辑模型',
+  2: '物理模型',
+};
+
 const dataSource = [
   {
     key: '1',
@@ -66,51 +74,129 @@ const columns = [
   },
   {
     title: '模型类型',
-    dataIndex: 'type',
     key: 'type',
+    render: (data: any) => {
+      const { type } = data;
+      return <Space size="middle">{ModelType[type as 0 | 1 | 2]}</Space>;
+    },
   },
   {
     title: '关联模型',
-    dataIndex: 'associate',
-    key: 'aassociatege',
+    dataIndex: 'correlationModel',
+    key: 'correlationModel',
   },
   {
     title: '业务对象数',
-    dataIndex: 'objectCount',
-    key: 'objectCount',
+    dataIndex: 'boCount',
+    key: 'boCount',
   },
   {
     title: '主题域',
-    dataIndex: 'domain',
-    key: 'domain',
+    dataIndex: 'sdName',
+    key: 'sdName',
   },
   {
     title: '提交人',
-    dataIndex: 'creater',
-    key: 'creater',
+    dataIndex: 'creator',
+    key: 'creator',
   },
   {
     title: '更改时间',
-    dataIndex: 'modifytime',
-    key: 'modifytime',
+    dataIndex: 'modifyTime',
+    key: 'modifyTime',
   },
   {
     title: '操作',
     key: 'action',
-    render: (_: any, record: any) => (
+    render: (_: any) => (
       <Space size="middle">
-        <a>查看详情</a>
+        <a
+          onClick={() => {
+            history.push(`/canvas?${_.id}`);
+          }}
+        >
+          查看详情
+        </a>
       </Space>
     ),
   },
 ];
 
-export const ModelManageWrap = () => {
+export const ModelManageWrap: React.FC<any> = () => {
+  const { queryModelList, getStatisticsModel } = service.ModelController;
+
   const [mode, setMode] = React.useState('top');
+  const [dataSource, setDataSource] = React.useState([]);
+  const [statisticsModel, setStatisticsModel] = React.useState<any>({});
 
   const handleModeChange = (e: RadioChangeEvent) => {
     setMode(e.target.value);
   };
+
+  useEffect(() => {
+    const queryList = async () => {
+      const res = await queryModelList({
+        pageSize: 10,
+        pageNumber: 1,
+      });
+      if (res.code === 200) {
+        setDataSource(res.data.data);
+      }
+    };
+    const queryStatisticsModel = async () => {
+      const res = await getStatisticsModel({});
+      if (res.code === 200) {
+        setStatisticsModel(res.data);
+      }
+    };
+
+    queryStatisticsModel();
+    queryList();
+  }, []);
+
+  const header = React.useMemo(() => {
+    const {
+      modelCount = 0,
+      tableCount = 0,
+      viewCount = 0,
+      logicalEntityCount = 0,
+      businessObjectCount = 0,
+      attributeCount = 0,
+    } = statisticsModel;
+    return [
+      {
+        count: modelCount,
+        label: '数据模型',
+        img: 'img/datamodel.png',
+      },
+      {
+        count: businessObjectCount,
+        label: '业务对象',
+        img: 'img/busobject.png',
+      },
+      {
+        count: logicalEntityCount,
+        label: '逻辑实体',
+        img: 'img/logical.png',
+      },
+      {
+        count: tableCount,
+        label: '表',
+        img: 'img/list.png',
+      },
+      {
+        count: viewCount,
+        label: '视图',
+        img: 'img/view.png',
+      },
+      {
+        count: attributeCount,
+        label: '属性',
+        img: 'img/attr.png',
+      },
+    ];
+  }, [statisticsModel]);
+
   return (
     <div className="wrap">
       <div className="header">
@@ -161,10 +247,8 @@ export const ModelManageWrap = () => {
               { value: 'false', label: '否' },
             ]}
           />
-
-          <Input.Search placeholder="关联词搜索" />
         </div>
-        <Table columns={columns} dataSource={dataSource} />
+        <Table columns={columns as any} dataSource={dataSource} />
       </div>
     </div>
   );
