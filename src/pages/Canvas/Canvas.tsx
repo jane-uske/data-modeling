@@ -1,19 +1,19 @@
+import { useState, useRef, useEffect } from 'react';
 import { Canvas } from 'supcon-canvas';
 import { fabric } from 'fabric';
-import { Button } from 'antd';
-import { LeftOutlined } from '@ant-design/icons';
-import { useEffect, useRef, useState } from 'react';
+import ReactDOM from 'react-dom';
 
-export const MyCanvas = () => {
+export const MyCanvas: React.FC<any> = ({
+  canvas,
+  setCanvas,
+  open,
+  setOpen,
+}) => {
   const CanvasAction = useRef(null) as any;
-  const canvas = useRef(null) as any;
-  const dragObject = useRef(null);
-
-  const [rect, setRect] = useState();
 
   const createNew = () => {
     const rect = new fabric.Rect({
-      left: 100,
+      left: 500,
       top: 100,
       width: 200,
       height: 100,
@@ -30,93 +30,99 @@ export const MyCanvas = () => {
       top: rect.top + (rect.height - text.height) / 2,
     });
 
-    const attachmentPoints = [];
-
-    for (let i = 0; i < 4; i++) {
-      const angle = (Math.PI / 2) * i;
-      const x = rect.left + rect.width / 2 + (rect.width / 2) * Math.cos(angle);
-      const y =
-        rect.top + rect.height / 2 + (rect.height / 2) * Math.sin(angle);
-
-      const attachmentPoint = new fabric.Circle({
-        left: x - 3,
-        top: y - 3,
-        radius: 4,
-        fill: 'red',
-        selectable: false,
-      });
-
-      attachmentPoint.on('mousedown', (e) => {
-        console.log(11111);
-        const startPoint = attachmentPoint.getCenterPoint();
-        const line = new fabric.Line(
-          [startPoint.x, startPoint.y, startPoint.x, startPoint.y],
-          {
-            stroke: 'blue',
-            strokeWidth: 2,
-            selectable: false,
-          },
-        );
-
-        canvas.current.add(line);
-
-        // 鼠标移动事件
-        canvas.current.on('mouse:move', (event) => {
-          const { e } = event;
-          const { offsetX, offsetY } = e;
-          line.set({ x2: offsetX, y2: offsetY });
-          canvas.current.renderAll();
-        });
-
-        // 鼠标释放事件
-        canvas.current.on('mouse:up', () => {
-          canvas.current.off('mouse:move');
-        });
-      });
-
-      attachmentPoints.push(attachmentPoint);
-    }
-
-    const group = new fabric.Group([rect, text, ...attachmentPoints], {});
+    const group = new fabric.Group([rect, text], {});
     CanvasAction.current?.add(group);
     return group;
   };
 
+  useEffect(() => {
+    // 添加右键点击菜单事件
+    if (!canvas) return;
+    canvas.on('mouse:down', (event: any) => {
+      console.log(event, 'event');
+      if (event.e.button === 2) {
+        // 右键点击
+        event.e.preventDefault(); // 阻止默认的右键菜单
+
+        // 获取鼠标点击的位置
+        const mouseX = event.e.clientX;
+        const mouseY = event.e.clientY;
+
+        // 显示自定义右键菜单
+        showContextMenu(mouseX, mouseY);
+      }
+    });
+
+    // 自定义的右键点击菜单显示函数
+    function showContextMenu(x, y) {
+      // 创建一个包含菜单项的菜单组件，并设置其样式和位置
+      const contextMenu = (
+        <div
+          style={{
+            position: 'absolute',
+            left: x + 'px',
+            top: y + 'px',
+            background: '#fff',
+            border: '1px solid #ccc',
+            padding: '5px',
+          }}
+        >
+          <ul>
+            <li onClick={handleMenuItemClick}>编辑</li>
+            <li onClick={handleMenuItemClick}>删除</li>
+          </ul>
+        </div>
+      );
+
+      // 渲染自定义菜单
+      ReactDOM.render(contextMenu, document.body);
+
+      // 添加点击其他地方时隐藏菜单的监听器
+      document.addEventListener('mousedown', (event) => {
+        if (!contextMenu.contains(event.target)) {
+          ReactDOM.unmountComponentAtNode(document.body);
+        }
+      });
+    }
+
+    // 菜单项点击事件处理函数
+    function handleMenuItemClick(event) {
+      // 处理菜单项点击事件
+      console.log('点击了菜单项:', event.target.textContent);
+      ReactDOM.unmountComponentAtNode(document.body);
+    }
+  }, []);
+
   return (
     <div style={{ flex: 1, background: 'red' }}>
       {/* <Button onClick={createNew}>添加对象</Button> */}
+
       <Canvas
         canvasAction={CanvasAction}
         reference
         style={{ height: '100%', background: 'red' }}
         // ruler
-        onZoomChange={(value) => {
-          console.log(value);
-        }}
+        onZoomChange={(value) => {}}
         onDragChang={(value) => {}}
-        onSelection={(e) => {
-          setRect(e.selected);
-          console.log(e, 'eee');
-        }}
+        onSelection={(e) => {}}
         onSelectionUpdated={(e) => {}}
         onSelectionCleared={(e) => {}}
-        onMouseDown={(e) => {}}
-        onMouseMove={(e) => {}}
-        onMouseUp={(e) => {}}
-        onMouseOut={(e) => {}}
-        onMouseOver={(e) => {}}
-        // bottomBarLeftRender={() => {
-        //   return '自定义';
-        // }}
-
-        bottomBarRightRender={() => {
-          return (
-            <Button className="object-btn" ref={dragObject}>
-              业务对象
-            </Button>
-          );
+        onMouseDown={(e) => {
+          setOpen(true);
+          console.log('onMouseDown', e);
         }}
-        toolList={[]}
+        // onMouseMove={(e) => {
+        //   console.log('onMouseMove', e);
+        // }}
+        // onMouseUp={(e) => {
+        //   console.log('onMouseUp___', e);
+        // }}
+        // onMouseOut={(e) => {
+        //   console.log('onMouseOut', e);
+        // }}
+        // onMouseOver={(e) => {
+        //   console.log('onMouseOver', e);
+        // }}
         cornerProps={{
           transparentCorners: false,
           cornerColor: '#FFFFFF',
@@ -140,11 +146,12 @@ export const MyCanvas = () => {
           },
         }}
         getCanvas={(_canvas) => {
-          canvas.current = _canvas;
+          setCanvas(_canvas);
           _canvas.add(createNew());
-          setTimeout(() => {
-            CanvasAction.current.addHistory?.();
-          }, 100);
+          (_canvas.selection = false), // 禁用默认选择事件
+            setTimeout(() => {
+              CanvasAction.current.addHistory?.();
+            }, 100);
         }}
       />
     </div>

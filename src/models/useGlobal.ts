@@ -4,7 +4,7 @@ import { Button, Modal, Input, Form, TreeSelect, Radio } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import type { DataNode } from 'antd/es/tree';
 
-type TreeNode = DataNode & {
+export type TreeNode = DataNode & {
   key: string;
   title: string;
   edit?: boolean;

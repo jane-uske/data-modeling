@@ -30,5 +30,37 @@
 
     .props-drawer {
     }
+
+    .obj-tool-bar {
+      position: absolute;
+      left: 300px;
+      top: 50px;
+      width: 52px;
+      height: 232px;
+      padding: 8px 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      box-shadow: 0 0 8px 0 rgba(45, 47, 71, 10%);
+
+      .tool {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        width: 40px;
+        height: 40px;
+
+        &:hover {
+          background-color: #5071f4;
+        }
+
+        .obj {
+          &:hover {
+            color: #fff;
+          }
+        }
+      }
+    }
   }
 }

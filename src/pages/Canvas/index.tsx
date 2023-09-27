@@ -2,11 +2,15 @@ import React from 'react';
 import { PageContainer } from '@ant-design/pro-components';
 import { MyCanvas } from './Canvas';
 import { BusinessObjList } from './BusinessObjList';
+import { ObjectToolbar } from './ObjectToolbar';
 import styles from './index.less';
 import { Breadcrumb } from 'antd';
 import { PropsDrawer } from './PropsDrawer';
 
 const CanvasPage: React.FC = () => {
+  const [canvas, setCanvas] = React.useState('');
+  const [open, setOpen] = React.useState(false);
+
   const menuItems = [
     {
       key: '1',
@@ -65,9 +69,10 @@ const CanvasPage: React.FC = () => {
             ]}
           />
         </div>
-        <MyCanvas />
+        <MyCanvas canvas={canvas} setCanvas={setCanvas} setOpen={setOpen} />
         <BusinessObjList />
-        <PropsDrawer />
+        <PropsDrawer open={open} setOpen={setOpen} />
+        <ObjectToolbar canvas={canvas} />
       </div>
     </PageContainer>
   );

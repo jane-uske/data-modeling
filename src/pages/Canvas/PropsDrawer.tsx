@@ -30,8 +30,7 @@ const columns = [
     title: '是否为主键',
     key: 'aassociatege',
     render: (_: any, record: any) => {
-      console.log(_, record);
-      return <Checkbox />;
+      return <Checkbox checked={record.isMainKey} />;
     },
   },
   {
@@ -45,11 +44,10 @@ const columns = [
   },
 ];
 interface Props {}
-export const PropsDrawer: React.FC<Props> = (props) => {
-  const { title = '业务对象：Bussiness_Object_01' } = props;
+export const PropsDrawer: React.FC<Props & any> = (props) => {
+  const { title = '业务对象：Bussiness_Object_01', open, setOpen } = props;
 
   const [form] = Form.useForm();
-  const [open, setOpen] = useState(false);
 
   const showDrawer = () => {
     setOpen(true);
@@ -61,9 +59,6 @@ export const PropsDrawer: React.FC<Props> = (props) => {
 
   return (
     <div className="props-drawer">
-      <Button type="primary" onClick={showDrawer}>
-        Open
-      </Button>
       <Drawer
         width={594}
         title={title}

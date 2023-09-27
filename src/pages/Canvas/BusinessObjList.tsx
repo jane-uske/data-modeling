@@ -38,7 +38,13 @@ export const BusinessObjList: React.FC = () => {
 
   return (
     <div className="list-wrap">
-      <Tree showIcon defaultExpandAll onSelect={onSelect} treeData={treeData} />
+      <Tree
+        draggable
+        showIcon
+        defaultExpandAll
+        onSelect={onSelect}
+        treeData={treeData}
+      />
     </div>
   );
 };
