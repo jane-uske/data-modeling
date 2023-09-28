@@ -485,7 +485,7 @@ export const LeftTree: React.FC<any> = (props) => {
 
   return (
     <>
-      <div className="left-tree" style={{ height: 'calc(100vh - 100px)' }}>
+      <div className="left-tree" >
         <p className="title">4A数据建模</p>
         <Divider style={{ margin: 0 }} />
         <div className="new-btn-wrap">

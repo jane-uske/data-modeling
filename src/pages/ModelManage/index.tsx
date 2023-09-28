@@ -13,7 +13,7 @@ const ModelManagePage: React.FC = () => {
     >
       <div className="page-wrap">
         <LeftTree />
-        <div style={{ flex: 1, margin: '0 16px' }}>
+        <div style={{ flex: 1, margin: 16 }}>
           <ModelManageWrap />
         </div>
       </div>
