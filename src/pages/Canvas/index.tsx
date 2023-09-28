@@ -115,18 +115,20 @@ const CanvasPage: React.FC = () => {
         return message.error(res.msg);
       }
       // todo 位置信息需要canvasJson
-      const needArr = busObjArr.map((item: any, index: number) => {
-        const { name, code, id, subjectDomainId } = item;
-        return {
-          name,
-          code,
-          subjectDomainId,
-          id,
-          left: 400 + 500 * index,
-          top: 200 + 50 * index,
-        };
-      });
-      setObjCollection(needArr);
+      if (busObjArr && busObjArr !== null) {
+        const needArr = busObjArr.map((item: any, index: number) => {
+          const { name, code, id, subjectDomainId } = item;
+          return {
+            name,
+            code,
+            subjectDomainId,
+            id,
+            left: 400 + 500 * index,
+            top: 200 + 50 * index,
+          };
+        });
+        setObjCollection(needArr);
+      }
       setModelDetail(res.data);
       const { maxNum, subjectDomainId } = res.data;
       setCurSelectedProps({
